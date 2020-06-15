@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class MapUtil {
     private static final ConcurrentHashMap<String, Object> toolMap = new ConcurrentHashMap<>();
 
+    // 判断是否属于基本类型
     private static final boolean isBelongBasicTypeClass(Class clazz){
         return (String.class == clazz)||(Boolean.class == clazz)||(Integer.class == clazz)||(Double.class == clazz)||(Long.class == clazz)||(Float.class == clazz)||(Character.class == clazz);
     }
@@ -19,7 +20,7 @@ public final class MapUtil {
         return getObjectByCascadeKey(toolMap, keyName);
     }
     /**
-     * 可以取级联属性对象
+     * 根据对象取级联属性的值
      * 如hhh.xxx.xxz
      * 不传入原始对象的话，则用toolMap作为原始对象
      * @param keyName
@@ -29,6 +30,7 @@ public final class MapUtil {
         if(null == keyName || "".equals(keyName)){
             return null;
         }
+        // 将keyName按.进行分割
         String[] keyNameChainArray = keyName.split("\\.");
         int len = keyNameChainArray.length;
         Object currentObject = sourceObject;
@@ -47,15 +49,21 @@ public final class MapUtil {
         return null;
     }
 
+    //根据key获取对象中的对应属性名的值
     private static Object getObjectByKey(Object object,String key){
+        // 如果是AbstractMap的子类，直接调用get(String key)方法返回
         if(object instanceof AbstractMap){
             AbstractMap map = (AbstractMap)object;
             return map.get(key);
         }else{
+            // 否则就调用getter方法进行返回
+            // 获取对象的类
             Class clazz = object.getClass();
+            // 判断是否属于基本对象类型
             if(isBelongBasicTypeClass(clazz)){
                 return null;
             }
+            // 构造方法名，属性名首字母大写
             StringBuilder methodNameBuilder = new StringBuilder("get");
             int len = key.length();
             for(int i = 0; i < len; i++){
@@ -70,7 +78,7 @@ public final class MapUtil {
             }
             String methodName= methodNameBuilder.toString();
             try{
-                // 反射调用getter方法
+                // 反射调用getter方法并返回结果
                 Method method = clazz.getMethod(methodName);
                 Object resultObject = method.invoke(object);
                 return resultObject;
@@ -148,16 +156,14 @@ public final class MapUtil {
         testClass2.setTestNumber(1045);
         testClass.setTestClass2(testClass2);
         toolMap.put("nima", testClass);
-//        System.out.println("nima.testId="+MapUtil.getObjectByCascadeKey("nima.testId"));
-
+        // 获取toolMap中nima.testId的值
+        System.out.println("nima.testId="+MapUtil.getObjectByCascadeKey("nima.testId"));
+        // 获取toolMap中nima.testClass2.testNumber的值
         System.out.println("nima.testClass2.testNumber="+ MapUtil.getObjectByCascadeKey("nima.testClass2.testNumber"));
+        // 获取testClass中testClass2.testNumber的值
         System.out.println("testClass2.testNumber="+ MapUtil.getObjectByCascadeKey(testClass, "testClass2.testNumber"));
-//        System.out.println("nima.testClass2.testBool="+MapUtil.getObjectByCascadeKey("nima.testClass2.testBool"));
-//        MapUtil hasagiUtil = new MapUtil();
-//        Class clazz = hasagiUtil.getClass();
-//        Class superClazz = clazz.getSuperclass();
-//        System.out.println(clazz.getName());
-//        System.out.println(superClazz.getName());
-//        System.out.println(Object.class == superClazz);
+        // 获取toolMap中nima.testClass2.testNumber的值
+        System.out.println("nima.testClass2.testBool="+MapUtil.getObjectByCascadeKey("nima.testClass2.testBool"));
+
     }
 }
